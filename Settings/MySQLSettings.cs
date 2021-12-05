@@ -1,6 +1,5 @@
 ﻿namespace scabackend.Settings
 {
-
     public class MySQLSettings
     {
         public string host { get; set; }
