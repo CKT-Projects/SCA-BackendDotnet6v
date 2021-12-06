@@ -2,18 +2,28 @@
 {
     public enum RoleEnum
     {
-        Pending = 1,
-        Seller = 2,
-        Buyer = 3,
-        SellerBuyer = 4,
-        Worker = 5,
-        Auditor = 6,
-        AppraiserBoss = 7,
-        AppraiserMaster = 8,
-        Appraiser = 9,
-        Administrator = 996,
-        Owner = 997,
-        Developer = 998,
-        SuperAdmin = 999,
+        SuperAdmin = 1,
+        Developer = 2,
+        Owner = 3,
+        Admin = 4,
+        AppraiserBoss = 5,
+        AppraiserMaster = 6,
+        Appraiser = 7,
+        Auditor = 8,
+        Seller = 9,
+        Buyer = 10,
+        SellerBuyer = 11,
+        Worker = 12
+    }
+
+    public enum RoleOldEnum
+    {
+        Admin = 7,
+        AppraiserBoss = 2,
+        AppraiserMaster = 4,
+        Appraiser = 3,
+        Seller = 5,
+        Buyer = 6,
+        Worker = 1
     }
 }

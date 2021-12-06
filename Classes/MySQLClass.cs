@@ -2,6 +2,7 @@
 using System.Data;
 using MySql.Data.MySqlClient;
 using scabackend.Settings;
+using scabackend.Models;
 
 namespace scabackend.Classes
 {
@@ -11,9 +12,9 @@ namespace scabackend.Classes
 
         private string ConnectionString { get; set; }
 
-        public MySQLClass(MySQLSettings mySQLSettings)
+        public MySQLClass(MySQLDetails mySQLDetails)
         {
-            this.ConnectionString = "Server=" + mySQLSettings.host + "; Port=" + mySQLSettings.port + "; Uid=" + mySQLSettings.username + "; Password=" + mySQLSettings.password + "; Database=" + mySQLSettings.database + ";";
+            this.ConnectionString = "Server=" + mySQLDetails.host + "; Port=" + mySQLDetails.port + "; Uid=" + mySQLDetails.username + "; Password=" + mySQLDetails.password + "; Database=" + mySQLDetails.database + ";";
 
             mysqlCon = new MySqlConnection(this.ConnectionString);
         }
@@ -62,6 +63,48 @@ namespace scabackend.Classes
                     return false;
                 }
             }
+        }
+
+        public List<UserModel> GetUserList(string sqlQuery)
+        {
+            List<UserModel> userModels = new List<UserModel>();
+            using (MySqlConnection sqlCon = mysqlCon)
+            {
+                using (MySqlCommand sqlCmd = new MySqlCommand(sqlQuery, sqlCon))
+                {
+                    sqlCon.Open();
+
+                    using (MySqlDataReader reader = sqlCmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            UserModel userModel = new UserModel();
+                            userModel.username = reader["username"].ToString();
+                            userModel.email = reader["email"].ToString();
+                            userModel.mobile = reader["mobile"].ToString();
+                            userModel.hint = reader["hint"].ToString();
+                            userModel.firstname = reader["firstname"].ToString();
+                            userModel.middlename = reader["middlename"] == null ? "NA" : reader["middlename"].ToString();
+                            userModel.lastname = reader["lastname"].ToString();
+                            userModel.role = reader["role"] == null ? 0 : Convert.ToInt32(reader["role"]);
+
+                            var dd = reader["connected_to"];
+
+                            userModel.connected_to = reader["connected_to"] == null ? 0 : Convert.ToInt64(reader["connected_to"]);
+
+                            userModel.is_active = reader["is_active"] == null ? 0 : Convert.ToInt32(reader["is_active"]);
+                            userModel.created_at = Convert.ToDateTime(reader["created_at"]);
+                            userModel.updated_at = Convert.ToDateTime(reader["updated_at"]);
+                            userModels.Add(userModel);
+                        }
+
+                        reader.Close();
+                    }
+
+                    sqlCon.Close();
+                }
+            }
+            return userModels;
         }
 
         public bool Save(string tableName, NameValueCollection nameValueCollection)
