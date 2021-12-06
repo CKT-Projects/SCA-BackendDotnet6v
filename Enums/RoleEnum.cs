@@ -18,12 +18,12 @@
 
     public enum RoleOldEnum
     {
-        Admin = 7,
+        Worker = 1,
         AppraiserBoss = 2,
         AppraiserMaster = 4,
         Appraiser = 3,
         Seller = 5,
         Buyer = 6,
-        Worker = 1
+        Admin = 7
     }
 }

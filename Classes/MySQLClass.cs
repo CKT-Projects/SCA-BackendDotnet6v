@@ -19,6 +19,11 @@ namespace scabackend.Classes
             mysqlCon = new MySqlConnection(this.ConnectionString);
         }
 
+        public MySqlConnection DBConnect
+        {
+            get { return mysqlCon; }
+        }
+
         public bool Open()
         {
             try
@@ -63,48 +68,6 @@ namespace scabackend.Classes
                     return false;
                 }
             }
-        }
-
-        public List<UserModel> GetUserList(string sqlQuery)
-        {
-            List<UserModel> userModels = new List<UserModel>();
-            using (MySqlConnection sqlCon = mysqlCon)
-            {
-                using (MySqlCommand sqlCmd = new MySqlCommand(sqlQuery, sqlCon))
-                {
-                    sqlCon.Open();
-
-                    using (MySqlDataReader reader = sqlCmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            UserModel userModel = new UserModel();
-                            userModel.username = reader["username"].ToString();
-                            userModel.email = reader["email"].ToString();
-                            userModel.mobile = reader["mobile"].ToString();
-                            userModel.hint = reader["hint"].ToString();
-                            userModel.firstname = reader["firstname"].ToString();
-                            userModel.middlename = reader["middlename"] == null ? "NA" : reader["middlename"].ToString();
-                            userModel.lastname = reader["lastname"].ToString();
-                            userModel.role = reader["role"] == null ? 0 : Convert.ToInt32(reader["role"]);
-
-                            var dd = reader["connected_to"];
-
-                            userModel.connected_to = reader["connected_to"] == null ? 0 : Convert.ToInt64(reader["connected_to"]);
-
-                            userModel.is_active = reader["is_active"] == null ? 0 : Convert.ToInt32(reader["is_active"]);
-                            userModel.created_at = Convert.ToDateTime(reader["created_at"]);
-                            userModel.updated_at = Convert.ToDateTime(reader["updated_at"]);
-                            userModels.Add(userModel);
-                        }
-
-                        reader.Close();
-                    }
-
-                    sqlCon.Close();
-                }
-            }
-            return userModels;
         }
 
         public bool Save(string tableName, NameValueCollection nameValueCollection)

@@ -2,6 +2,13 @@
 {
     public class UserModel
     {
+        public int status { get; set; }
+        public string message { get; set; }
+        public List<UserDataModel> data { get; set; }
+    }
+
+    public class UserDataModel
+    {
         public Int64 id { get; set; }
         public string token_access { get; set; }
         public string public_uuid { get; set; }
@@ -14,10 +21,9 @@
         public string middlename { get; set; }
         public string lastname { get; set; }
         public int role { get; set; }
-        public Int64 connected_to { get; set; }
+        public Int64 worker_of { get; set; }
         public int is_active { get; set; }
         public DateTime created_at { get; set; }
         public DateTime updated_at { get; set; }
-       
     }
 }
