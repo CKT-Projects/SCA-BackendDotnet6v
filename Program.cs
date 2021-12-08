@@ -10,6 +10,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+// Add MySQL EntityFrameworkCore connectiong strinfg
+//string connectionString = "Server=" + builder.Configuration["MySQLSettings:new_database:host"]
+//    + "; Port=" + builder.Configuration["MySQLSettings:new_database:port"]
+//    + "; Uid=" + builder.Configuration["MySQLSettings:new_database:username"]
+//    + "; Password=" + builder.Configuration["MySQLSettings:new_database:password"]
+//    + "; Database=" + builder.Configuration["MySQLSettings:new_database:database"] + ";";
+//builder.Services.AddDbContext<MySQLData>(option => option.UseMySQL(connectionString));
+
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -61,7 +70,8 @@ builder.Services.AddCors(options =>
             "https://www.scrapcatapp.com",
             "https://test.scrapcatapp.com",
             "https://staging.scrapcatapp.com",
-            "http://localhost"
+            "https://beta.scrapcatapp.com",
+            "http://localhost:3000"
         );
     });
 });

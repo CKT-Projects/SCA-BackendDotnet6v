@@ -10,7 +10,6 @@
     public class UserDataModel
     {
         public Int64 id { get; set; }
-        public string token_access { get; set; }
         public string public_uuid { get; set; }
         public string username { get; set; }
         public string email { get; set; }
