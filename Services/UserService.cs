@@ -37,9 +37,11 @@ namespace scabackend.Services
                             while (reader.Read())
                             {
                                 UserDataModel userDataModel = new UserDataModel();
+                                userDataModel.public_uuid = Guid.NewGuid().ToString();
                                 userDataModel.username = HelperClass.CheckIsNullOrEmptyString(reader["username"].ToString());
                                 userDataModel.email = HelperClass.CheckIsNullOrEmptyString(reader["email"].ToString());
                                 userDataModel.mobile = HelperClass.CheckIsNullOrEmptyString(reader["mobile"].ToString());
+                                userDataModel.password = HelperClass.CheckIsNullOrEmptyString(reader["hint"].ToString());
                                 userDataModel.hint = HelperClass.CheckIsNullOrEmptyString(reader["hint"].ToString());
                                 userDataModel.firstname = HelperClass.CheckIsNullOrEmptyString(reader["firstname"].ToString());
                                 userDataModel.middlename = HelperClass.CheckIsNullOrEmptyString(reader["middlename"].ToString());
@@ -71,6 +73,99 @@ namespace scabackend.Services
             }
 
             return userModel;
+        }
+
+        public bool SaveChanges(UserDataModel userDataModel)
+        {
+            using (MySqlConnection sqlCon = this._mysqlCon)
+            {
+
+                string fields = "public_uuid, username, email, mobile, ";
+                fields += "password, hint, firstname, middlename, lastname, role, worker_of, ";
+                fields += "is_active, last_logged_in_ipaddress, last_logged_in, created_at, updated_at";
+
+                string values = "@public_uuid, @username, @email, @mobile, ";
+                values += "@password, @hint, @firstname, @middlename, @lastname, @role, @worker_of, ";
+                values += "@is_active, @last_logged_in_ipaddress, @last_logged_in, @created_at, @updated_at";
+
+                string query = string.Format("INSERT INTO users ({0}) VALUES ({1});", fields, values);
+
+                using (MySqlCommand sqlCmd = new MySqlCommand(query, sqlCon))
+                {
+                    sqlCmd.Parameters.AddWithValue("@public_uuid", userDataModel.public_uuid);
+                    sqlCmd.Parameters.AddWithValue("@username", userDataModel.username);
+                    sqlCmd.Parameters.AddWithValue("@email", userDataModel.email);
+                    sqlCmd.Parameters.AddWithValue("@mobile", userDataModel.mobile);
+                    sqlCmd.Parameters.AddWithValue("@password", userDataModel.password);
+                    sqlCmd.Parameters.AddWithValue("@hint", userDataModel.hint);
+                    sqlCmd.Parameters.AddWithValue("@firstname", userDataModel.firstname);
+                    sqlCmd.Parameters.AddWithValue("@middlename", userDataModel.middlename);
+                    sqlCmd.Parameters.AddWithValue("@lastname", userDataModel.lastname);
+                    sqlCmd.Parameters.AddWithValue("@role", userDataModel.role);
+                    sqlCmd.Parameters.AddWithValue("@worker_of", userDataModel.worker_of);
+                    sqlCmd.Parameters.AddWithValue("@is_active", userDataModel.is_active);
+                    sqlCmd.Parameters.AddWithValue("@last_logged_in_ipaddress", "NA");
+                    sqlCmd.Parameters.AddWithValue("@last_logged_in", userDataModel.created_at);
+                    sqlCmd.Parameters.AddWithValue("@created_at", userDataModel.created_at);
+                    sqlCmd.Parameters.AddWithValue("@updated_at", userDataModel.created_at);
+
+                    sqlCon.Open();
+                    int result = sqlCmd.ExecuteNonQuery();
+                    sqlCon.Close();
+
+                    if (result > 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public Int64 SaveChangesWithLastId(UserDataModel userDataModel)
+        {
+            Int64 result = 0;
+
+            using (MySqlConnection sqlCon = this._mysqlCon)
+            {
+
+                string fields = "public_uuid, username, email, mobile, ";
+                fields += "password, hint, firstname, middlename, lastname, role, worker_of, ";
+                fields += "is_active, last_logged_in_ipaddress, last_logged_in, created_at, updated_at";
+
+                string values = "@public_uuid, @username, @email, @mobile, ";
+                values += "@password, @hint, @firstname, @middlename, @lastname, @role, @worker_of, ";
+                values += "@is_active, @last_logged_in_ipaddress, @last_logged_in, @created_at, @updated_at";
+
+                string query = string.Format("INSERT INTO users ({0}) VALUES ({1}); SELECT LAST_INSERT_ID();", fields, values);
+
+                using (MySqlCommand sqlCmd = new MySqlCommand(query, sqlCon))
+                {
+                    sqlCmd.Parameters.AddWithValue("@public_uuid", userDataModel.public_uuid);
+                    sqlCmd.Parameters.AddWithValue("@username", userDataModel.username);
+                    sqlCmd.Parameters.AddWithValue("@email", userDataModel.email);
+                    sqlCmd.Parameters.AddWithValue("@mobile", userDataModel.mobile);
+                    sqlCmd.Parameters.AddWithValue("@password", userDataModel.password);
+                    sqlCmd.Parameters.AddWithValue("@hint", userDataModel.hint);
+                    sqlCmd.Parameters.AddWithValue("@firstname", userDataModel.firstname);
+                    sqlCmd.Parameters.AddWithValue("@middlename", userDataModel.middlename);
+                    sqlCmd.Parameters.AddWithValue("@lastname", userDataModel.lastname);
+                    sqlCmd.Parameters.AddWithValue("@role", userDataModel.role);
+                    sqlCmd.Parameters.AddWithValue("@worker_of", userDataModel.worker_of);
+                    sqlCmd.Parameters.AddWithValue("@is_active", userDataModel.is_active);
+                    sqlCmd.Parameters.AddWithValue("@last_logged_in_ipaddress", "NA");
+                    sqlCmd.Parameters.AddWithValue("@last_logged_in", userDataModel.created_at);
+                    sqlCmd.Parameters.AddWithValue("@created_at", userDataModel.created_at);
+                    sqlCmd.Parameters.AddWithValue("@updated_at", userDataModel.created_at);
+
+                    sqlCon.Open();
+                    result = Convert.ToInt64(sqlCmd.ExecuteScalar());
+                    sqlCon.Close();
+                }
+            }
+
+            return result;
         }
     }
 }

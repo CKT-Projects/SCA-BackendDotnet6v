@@ -13,6 +13,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="MySql.Data" Version="8.0.27" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="StackExchange.Redis" Version="2.2.88" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.15.0" />
   </ItemGroup>

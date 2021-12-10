@@ -1,4 +1,7 @@
-﻿namespace scabackend.Classes
+﻿using System.Runtime.InteropServices;
+using scabackend.Settings;
+
+namespace scabackend.Classes
 {
     public class HelperClass
     {
@@ -20,6 +23,37 @@
         public static DateTime CheckIsNullOrEmptyDateTime(string value)
         {
             return String.IsNullOrEmpty(value) ? DateTime.Now : Convert.ToDateTime(value);
+        }
+
+        public static DateTime DateTimeNow(AppSettings appSettings)
+        {
+            string timezone = appSettings.timezones.windows;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                timezone = appSettings.timezones.linux;
+            }
+
+            DateTime currentTime = TimeZoneInfo.ConvertTime(
+                    DateTime.Now,
+                    TimeZoneInfo.FindSystemTimeZoneById(timezone)
+            );
+
+            return currentTime;
+        }
+
+        public static string DateTimeNow(AppSettings appSettings, string format = "dddd, dd MMMM h:mm:ss tt")
+        {
+            DateTime currentTime = DateTimeNow(appSettings);
+
+            string timezone = appSettings.timezones.windows;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                timezone = appSettings.timezones.linux;
+            }
+
+            return string.Format("{0}: {1}", timezone, currentTime.ToString(format));
         }
 
     }

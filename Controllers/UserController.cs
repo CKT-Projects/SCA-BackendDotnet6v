@@ -7,6 +7,7 @@ using System.Text;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
+using StackExchange.Redis;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using scabackend.Enums;
@@ -20,26 +21,42 @@ namespace scabackend.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
+        internal RedisClass _redisClass { get; set; }
         internal AppSettings _appSettings { get; set; }
+        internal AuthSettings _authSettings { get; set; }
         internal MySQLSettings _mySQLSettings { get; set; }
         internal MySQLClass _myNewDatabase { get; set; }
         internal MySQLClass _myOldDatabase { get; set; }
+        internal UserService _userOldService { get; set; }
+        internal UserService _userService { get; set; }
 
-        public UserController(IOptions<AppSettings> appSettings, IOptions<MySQLSettings> mySQLSettings)
+        private readonly IDatabase _redisDatabase;
+
+        public UserController(
+            IDatabase redisDatabase,
+            IOptions<AppSettings> appSettings, 
+            IOptions<AuthSettings> authSettings, 
+            IOptions<MySQLSettings> mySQLSettings
+            )
         {
             this._appSettings = appSettings.Value;
+            this._authSettings = authSettings.Value;
             this._mySQLSettings = mySQLSettings.Value;
             this._myNewDatabase = new MySQLClass(mySQLSettings.Value.new_database);
             this._myOldDatabase = new MySQLClass(mySQLSettings.Value.old_database);
+
+            this._userOldService = new UserService(this._myOldDatabase.DBConnect);
+            this._userService = new UserService(this._myNewDatabase.DBConnect);
+
+            this._redisDatabase = redisDatabase;
+            this._redisClass = new RedisClass(redisDatabase);
         }
 
         [Route("initialize")]
         [HttpGet]
         public void Initialize()
         {
-            UserService userService = new UserService(this._myOldDatabase.DBConnect);
-
-            UserModel userOldData = userService.GetOldUserList("SELECT " +
+            UserModel userOldData = _userOldService.GetOldUserList("SELECT " +
                                                                 "user_name AS username, " +
                                                                 "email, " +
                                                                 "mobilenumber AS mobile, " +
@@ -52,7 +69,17 @@ namespace scabackend.Controllers
                                                                 "active AS is_active, " +
                                                                 "created_at, " +
                                                                 "updated_at " +
-                                                                "FROM tbl_users WHERE active = 1;");
+                                                                "FROM tbl_users WHERE active = 1 ORDER BY username ASC;");
+
+            foreach(UserDataModel userData in userOldData.data)
+            {
+                _redisClass.GetUserSingle(userData.username);
+
+                //bool result =  this._userService.SaveChanges(userData);
+                Int64 lastId = this._userService.SaveChangesWithLastId(userData);
+
+                _redisClass.SetUserSingle(userData);
+            }
 
         }
 
@@ -60,9 +87,7 @@ namespace scabackend.Controllers
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public ActionResult Get()
         {
-            UserService userService = new UserService(this._myOldDatabase.DBConnect);
-
-            UserModel userOldData = userService.GetOldUserList("SELECT " +
+            UserModel userOldData = _userOldService.GetOldUserList("SELECT " +
                                                                 "user_name AS username, " +
                                                                 "email, " +
                                                                 "mobilenumber AS mobile, " +
@@ -75,7 +100,7 @@ namespace scabackend.Controllers
                                                                 "active AS is_active, " +
                                                                 "created_at, " +
                                                                 "updated_at " +
-                                                                "FROM tbl_users WHERE active = 1;");
+                                                                "FROM tbl_users WHERE active = 1 ORDER BY username ASC;");
 
             return new JsonResult(userOldData);
         }
@@ -100,16 +125,16 @@ namespace scabackend.Controllers
             }
             
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(this._appSettings.secret_key);
+            var key = Encoding.ASCII.GetBytes(this._authSettings.secret_key);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     new Claim(ClaimTypes.Name, user.account)
                 }),
-                Issuer= this._appSettings.issuer,
-                Audience= this._appSettings.audience,
-                Expires = DateTime.UtcNow.AddHours(this._appSettings.expiration),
+                Issuer= this._authSettings.issuer,
+                Audience= this._authSettings.audience,
+                Expires = DateTime.UtcNow.AddHours(this._authSettings.expiration),
                 NotBefore = DateTime.UtcNow,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };

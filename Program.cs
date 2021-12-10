@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using scabackend.Controllers;
 using scabackend.Models;
+using StackExchange.Redis;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -53,9 +54,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         ValidateAudience = true,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["AppSettings:issuer"],
-        ValidAudience = builder.Configuration["AppSettings:audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["AppSettings:secret_key"]))
+        ValidIssuer = builder.Configuration["AuthSettings:issuer"],
+        ValidAudience = builder.Configuration["AuthSettings:audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["AuthSettings:secret_key"]))
     };
 });
 builder.Services.AddAuthorization();
@@ -75,10 +76,20 @@ builder.Services.AddCors(options =>
         );
     });
 });
+
+//RedisSettings
+string redisHost = builder.Configuration["RedisSettings:host"];
+string redisPort = builder.Configuration["RedisSettings:port"];
+var redis = ConnectionMultiplexer.Connect(string.Format("{0:1}", redisHost, redisPort));
+builder.Services.AddScoped(s => redis.GetDatabase());
+
 IConfiguration configuration = builder.Configuration;
 // Initialize configs on AppSettings.Json
 builder.Services.Configure<scabackend.Settings.AppSettings>
     (configuration.GetSection("AppSettings"));
+
+builder.Services.Configure<scabackend.Settings.AuthSettings>
+    (configuration.GetSection("AuthSettings"));
 
 builder.Services.Configure<scabackend.Settings.MySQLSettings>
     (configuration.GetSection("MySQLSettings"));
