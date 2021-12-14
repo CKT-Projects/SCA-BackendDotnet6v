@@ -6,23 +6,8 @@ namespace scabackend.Classes
 {
     public class RedisClass
     {
-        public static IConfiguration iconfig { get; set; }
         public static IDatabase idatabase { get; set; }
-        //private ConnectionMultiplexer Connect()
-        //{
-        //    string redisHost = iconfig["RedisSettings:host"];
-        //    string redisPort = iconfig["RedisSettings:port"];
-
-        //    ConfigurationOptions configurationOptions = new ConfigurationOptions
-        //    {
-        //        EndPoints = { string.Format("{0}:{1}", redisHost, redisPort) }
-        //    };
-
-        //    ConnectionMultiplexer redis = ConnectionMultiplexer.Connect(configurationOptions);
-
-        //    return redis;
-        //}
-
+       
         public bool SetUserSingle(UserDataModel userDataModel)
         {
             string datakey = userDataModel.username + "_" + Guid.NewGuid().ToString();

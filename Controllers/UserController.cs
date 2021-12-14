@@ -45,7 +45,6 @@ namespace scabackend.Controllers
             this._userOldService = new UserService(this._myOldDatabase.DBConnect);
             this._userService = new UserService(this._myNewDatabase.DBConnect);
 
-            RedisClass.iconfig = iconfig;
             RedisClass.idatabase = idatabase;
         }
 
