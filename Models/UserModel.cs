@@ -9,6 +9,7 @@
 
     public class UserDataModel
     {
+        public string key { get; set; }
         public Int64 id { get; set; }
         public string public_uuid { get; set; }
         public string username { get; set; }
@@ -20,9 +21,16 @@
         public string middlename { get; set; }
         public string lastname { get; set; }
         public int role { get; set; }
+        public string access_permitted { get; set; }
+        public UserModuleAccess permitted { get; set; }
         public Int64 worker_of { get; set; }
         public int is_active { get; set; }
         public DateTime created_at { get; set; }
         public DateTime updated_at { get; set; }
+    }
+
+    public class UserModuleAccess
+    {
+        public int[] modules { get; set; }
     }
 }

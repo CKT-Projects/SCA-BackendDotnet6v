@@ -6,16 +6,26 @@ namespace scabackend.Classes
 {
     public class RedisClass
     {
-        public IDatabase _database { get; set; }
+        public static IConfiguration iconfig { get; set; }
+        public static IDatabase idatabase { get; set; }
+        //private ConnectionMultiplexer Connect()
+        //{
+        //    string redisHost = iconfig["RedisSettings:host"];
+        //    string redisPort = iconfig["RedisSettings:port"];
 
-        public RedisClass(IDatabase database)
-        {
-            this._database = database;
-        }
+        //    ConfigurationOptions configurationOptions = new ConfigurationOptions
+        //    {
+        //        EndPoints = { string.Format("{0}:{1}", redisHost, redisPort) }
+        //    };
+
+        //    ConnectionMultiplexer redis = ConnectionMultiplexer.Connect(configurationOptions);
+
+        //    return redis;
+        //}
 
         public bool SetUserSingle(UserDataModel userDataModel)
         {
-            string datakey = "scauser_" + userDataModel.username;
+            string datakey = userDataModel.username + "_" + Guid.NewGuid().ToString();
 
             bool result = false;
 
@@ -23,25 +33,21 @@ namespace scabackend.Classes
             {
                 string datavalue = JsonConvert.SerializeObject(userDataModel);
 
-                result = this._database.StringSet(datakey, datavalue);
+                result = idatabase.StringSet(datakey, datavalue);
             }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            catch 
+            {}
 
             return result;
         }
 
-        public UserDataModel GetUserSingle(string username)
+        public UserDataModel GetUserSingle(string datakey)
         {
-            string datakey = "scauser_" + username;
-
             UserDataModel userDataModel = new UserDataModel();
 
             try
             {
-                var data = this._database.StringGet(datakey);
+                var data = idatabase.StringGet(datakey);
 
                 userDataModel = JsonConvert.DeserializeObject<UserDataModel>(data);
             }
@@ -49,6 +55,45 @@ namespace scabackend.Classes
             {}
 
             return userDataModel;
+        }
+
+        public UserModel CheckUserDuplicate(string username)
+        {
+            UserModel userModel = new UserModel();
+
+            try
+            {
+                userModel.data = new List<UserDataModel>();
+
+                IConnectionMultiplexer multiplexer = idatabase.Multiplexer;
+
+                IServer server = multiplexer.GetServer(multiplexer.Configuration);
+
+                foreach (var key in server.Keys(pattern: "*" + username + "*"))
+                {
+                    UserDataModel userDataModel = this.GetUserSingle(key);
+                    userDataModel.key = key;
+                    userModel.data.Add(userDataModel);
+                }
+
+                if (userModel.data.Count > 0)
+                {
+                    userModel.status = 200;
+                    userModel.message = "Success";
+                }
+                else
+                {
+                    userModel.status = 404;
+                    userModel.message = "No data";
+                }
+            }
+            catch (Exception ex)
+            {
+                userModel.status = 500;
+                userModel.message = ex.Message;
+            }
+
+            return userModel;
         }
     }
 }

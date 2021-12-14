@@ -22,41 +22,47 @@ namespace scabackend.Controllers
     public class UserController : ControllerBase
     {
         internal RedisClass _redisClass { get; set; }
-        internal AppSettings _appSettings { get; set; }
         internal AuthSettings _authSettings { get; set; }
-        internal MySQLSettings _mySQLSettings { get; set; }
         internal MySQLClass _myNewDatabase { get; set; }
         internal MySQLClass _myOldDatabase { get; set; }
         internal UserService _userOldService { get; set; }
         internal UserService _userService { get; set; }
 
-        private readonly IDatabase _redisDatabase;
-
         public UserController(
-            IDatabase redisDatabase,
+            IConfiguration iconfig,
+            IDatabase idatabase,
             IOptions<AppSettings> appSettings, 
             IOptions<AuthSettings> authSettings, 
             IOptions<MySQLSettings> mySQLSettings
             )
         {
-            this._appSettings = appSettings.Value;
+            HelperClass.appSettings = appSettings.Value;
+
             this._authSettings = authSettings.Value;
-            this._mySQLSettings = mySQLSettings.Value;
             this._myNewDatabase = new MySQLClass(mySQLSettings.Value.new_database);
             this._myOldDatabase = new MySQLClass(mySQLSettings.Value.old_database);
 
             this._userOldService = new UserService(this._myOldDatabase.DBConnect);
             this._userService = new UserService(this._myNewDatabase.DBConnect);
 
-            this._redisDatabase = redisDatabase;
-            this._redisClass = new RedisClass(redisDatabase);
+            RedisClass.iconfig = iconfig;
+            RedisClass.idatabase = idatabase;
         }
 
         [Route("initialize")]
         [HttpGet]
         public void Initialize()
         {
-            UserModel userOldData = _userOldService.GetOldUserList("SELECT " +
+            // user old service, then pass user new service
+            this._userOldService.StartInitOldUser(this._userService);
+        }
+
+        [Route("get/all/old/user")]
+        [HttpGet]
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public ActionResult GetOld()
+        {
+            UserModel userOldData = this._userOldService.GetOldUserList("SELECT " +
                                                                 "user_name AS username, " +
                                                                 "email, " +
                                                                 "mobilenumber AS mobile, " +
@@ -71,36 +77,14 @@ namespace scabackend.Controllers
                                                                 "updated_at " +
                                                                 "FROM tbl_users WHERE active = 1 ORDER BY username ASC;");
 
-            foreach(UserDataModel userData in userOldData.data)
-            {
-                _redisClass.GetUserSingle(userData.username);
-
-                //bool result =  this._userService.SaveChanges(userData);
-                Int64 lastId = this._userService.SaveChangesWithLastId(userData);
-
-                _redisClass.SetUserSingle(userData);
-            }
-
+            return new JsonResult(userOldData);
         }
 
         [HttpGet]
-        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public ActionResult Get()
         {
-            UserModel userOldData = _userOldService.GetOldUserList("SELECT " +
-                                                                "user_name AS username, " +
-                                                                "email, " +
-                                                                "mobilenumber AS mobile, " +
-                                                                "hint, " +
-                                                                "last_name AS lastname, " +
-                                                                "first_name AS firstname, " +
-                                                                "middle_name AS middlename, " +
-                                                                "role, " +
-                                                                "worker_of, " +
-                                                                "active AS is_active, " +
-                                                                "created_at, " +
-                                                                "updated_at " +
-                                                                "FROM tbl_users WHERE active = 1 ORDER BY username ASC;");
+            UserModel userOldData = this._userService.GetAll();
 
             return new JsonResult(userOldData);
         }

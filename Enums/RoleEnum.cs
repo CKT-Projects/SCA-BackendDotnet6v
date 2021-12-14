@@ -2,17 +2,18 @@
 {
     public enum RoleEnum
     {
+        Default = 0,
         SuperAdmin = 1,
         Developer = 2,
         Owner = 3,
-        Admin = 4,
-        AppraiserBoss = 5,
-        AppraiserMaster = 6,
-        Appraiser = 7,
-        Auditor = 8,
-        Seller = 9,
-        Buyer = 10,
-        SellerBuyer = 11,
+        AdminManager = 4,
+        Admin = 5,
+        AppraiserBoss = 6,
+        AppraiserManager = 7,
+        Appraiser = 8,
+        Auditor = 9,
+        Seller = 10,
+        Buyer = 11,
         Worker = 12
     }
 

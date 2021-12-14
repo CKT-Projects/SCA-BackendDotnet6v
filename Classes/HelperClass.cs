@@ -1,13 +1,33 @@
 ﻿using System.Runtime.InteropServices;
 using scabackend.Settings;
+using Newtonsoft.Json;
+using scabackend.Models;
 
 namespace scabackend.Classes
 {
     public class HelperClass
     {
+        public static AppSettings appSettings { get; set; }
+
         public static string CheckIsNullOrEmptyString(string value, string returnDefault = "NA")
         {
             return String.IsNullOrEmpty(value) ? returnDefault : value;
+        }
+
+        public static UserModuleAccess CheckIsNullOrEmptyAccessPermitted(string value)
+        {
+            if(String.IsNullOrEmpty(value))
+            {
+                UserModuleAccess userModuleAccess = new UserModuleAccess();
+
+                userModuleAccess.modules = new int[1];
+
+                userModuleAccess.modules[0] = 0;
+
+                return userModuleAccess;
+            }
+
+            return JsonConvert.DeserializeObject<UserModuleAccess>(value);
         }
 
         public static int CheckIsNullOrEmptyInt(string value, int returnDefault = 0)
@@ -22,10 +42,10 @@ namespace scabackend.Classes
 
         public static DateTime CheckIsNullOrEmptyDateTime(string value)
         {
-            return String.IsNullOrEmpty(value) ? DateTime.Now : Convert.ToDateTime(value);
+            return String.IsNullOrEmpty(value) ? DateTimeNow() : Convert.ToDateTime(value);
         }
 
-        public static DateTime DateTimeNow(AppSettings appSettings)
+        public static DateTime DateTimeNow()
         {
             string timezone = appSettings.timezones.windows;
 
@@ -42,9 +62,9 @@ namespace scabackend.Classes
             return currentTime;
         }
 
-        public static string DateTimeNow(AppSettings appSettings, string format = "dddd, dd MMMM h:mm:ss tt")
+        public static string DateTimeNow(string format = "dddd, dd MMMM h:mm:ss tt")
         {
-            DateTime currentTime = DateTimeNow(appSettings);
+            DateTime currentTime = DateTimeNow();
 
             string timezone = appSettings.timezones.windows;
 
