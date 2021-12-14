@@ -8,6 +8,22 @@ namespace scabackend.Classes
     {
         public static IDatabase idatabase { get; set; }
        
+        public bool SetUserModelSingle(UserModel userModel, string datakey = "allnewusers")
+        {
+            bool result = false;
+
+            try
+            {
+                string datavalue = JsonConvert.SerializeObject(userModel);
+
+                result = idatabase.StringSet(datakey, datavalue);
+            }
+            catch 
+            {}
+
+            return result;
+        }
+
         public bool SetUserSingle(UserDataModel userDataModel)
         {
             string datakey = userDataModel.username + "_" + Guid.NewGuid().ToString();
@@ -20,13 +36,29 @@ namespace scabackend.Classes
 
                 result = idatabase.StringSet(datakey, datavalue);
             }
-            catch 
-            {}
+            catch
+            { }
 
             return result;
         }
 
-        public UserDataModel GetUserSingle(string datakey)
+        public UserModel GetUserModelSingle(string datakey = "allnewusers")
+        {
+            UserModel userModel = new UserModel();
+
+            try
+            {
+                var data = idatabase.StringGet(datakey);
+
+                userModel = JsonConvert.DeserializeObject<UserModel>(data);
+            }
+            catch
+            { }
+
+            return userModel;
+        }
+
+        public UserDataModel GetUserDataModelSingle(string datakey)
         {
             UserDataModel userDataModel = new UserDataModel();
 
@@ -56,7 +88,7 @@ namespace scabackend.Classes
 
                 foreach (var key in server.Keys(pattern: "*" + username + "*"))
                 {
-                    UserDataModel userDataModel = this.GetUserSingle(key);
+                    UserDataModel userDataModel = this.GetUserDataModelSingle(key);
                     userDataModel.key = key;
                     userModel.data.Add(userDataModel);
                 }

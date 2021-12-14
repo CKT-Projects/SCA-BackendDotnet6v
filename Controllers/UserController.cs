@@ -46,6 +46,7 @@ namespace scabackend.Controllers
             this._userService = new UserService(this._myNewDatabase.DBConnect);
 
             RedisClass.idatabase = idatabase;
+            this._redisClass = new RedisClass();
         }
 
         [Route("initialize")]
@@ -56,12 +57,25 @@ namespace scabackend.Controllers
             this._userOldService.StartInitOldUser(this._userService);
         }
 
-        [Route("get/all/old/user")]
+        [Route("get/all/old")]
         [HttpGet]
         //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public ActionResult GetOld()
+        public IResult GetOld()
         {
-            UserModel userOldData = this._userOldService.GetOldUserList("SELECT " +
+            UserModel userOldData = this._redisClass.GetUserModelSingle("alloldusers");
+
+            if (userOldData.status == 500)
+            {
+                return Results.BadRequest(new
+                {
+                    status = 500,
+                    message = "Error"
+                });
+            }
+
+            if (userOldData.status != 200)
+            {
+                userOldData = this._userOldService.GetOldUserList("SELECT " +
                                                                 "user_name AS username, " +
                                                                 "email, " +
                                                                 "mobilenumber AS mobile, " +
@@ -76,16 +90,45 @@ namespace scabackend.Controllers
                                                                 "updated_at " +
                                                                 "FROM tbl_users WHERE active = 1 ORDER BY username ASC;");
 
-            return new JsonResult(userOldData);
+                this._redisClass.SetUserModelSingle(userOldData, "alloldusers");
+            }
+
+            return Results.Ok(new
+            {
+                status = userOldData.status,
+                message = userOldData.message,
+                data = userOldData.data
+            });
         }
 
         [HttpGet]
         //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public ActionResult Get()
+        public IResult Get()
         {
-            UserModel userOldData = this._userService.GetAll();
+            UserModel userModel = this._redisClass.GetUserModelSingle();
 
-            return new JsonResult(userOldData);
+            if (userModel.status == 500)
+            {
+                return Results.BadRequest(new
+                {
+                    status = 500,
+                    message = "Error"
+                });
+            }
+
+            if (userModel.status != 200)
+            {
+                userModel = this._userService.GetAll();
+
+                this._redisClass.SetUserModelSingle(userModel);
+            }
+
+            return Results.Ok(new
+            {
+                status = userModel.status,
+                message = userModel.message,
+                data = userModel.data
+            });
         }
 
         [HttpGet("{public_uuid}")]
