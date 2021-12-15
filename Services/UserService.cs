@@ -36,6 +36,7 @@ namespace scabackend.Services
                             while (reader.Read())
                             {
                                 UserDataModel userDataModel = new UserDataModel();
+                                userDataModel.id = HelperClass.CheckIsNullOrEmptyInt64(reader["id"].ToString());
                                 userDataModel.public_uuid = Guid.NewGuid().ToString();
                                 userDataModel.username = HelperClass.CheckIsNullOrEmptyString(reader["username"].ToString());
                                 userDataModel.email = HelperClass.CheckIsNullOrEmptyString(reader["email"].ToString());
@@ -45,7 +46,6 @@ namespace scabackend.Services
                                 userDataModel.firstname = HelperClass.CheckIsNullOrEmptyString(reader["firstname"].ToString());
                                 userDataModel.middlename = HelperClass.CheckIsNullOrEmptyString(reader["middlename"].ToString());
                                 userDataModel.lastname = HelperClass.CheckIsNullOrEmptyString(reader["lastname"].ToString());
-                                userDataModel.role = HelperClass.CheckIsNullOrEmptyInt(reader["role"].ToString());
                                 userDataModel.permitted = HelperClass.CheckIsNullOrEmptyAccessPermitted(reader["access_permitted"].ToString());
                                 userDataModel.worker_of = HelperClass.CheckIsNullOrEmptyInt64(reader["worker_of"].ToString());
                                 userDataModel.is_active = HelperClass.CheckIsNullOrEmptyInt(reader["is_active"].ToString());
