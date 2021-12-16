@@ -96,7 +96,7 @@ builder.Services.Configure<scabackend.Settings.MySQLSettings>
 
 var app = builder.Build();
 app.UseSwagger();
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseAuthorization();
 app.UseAuthentication();
 app.MapControllers();

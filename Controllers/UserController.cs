@@ -31,8 +31,8 @@ namespace scabackend.Controllers
         public UserController(
             IConfiguration iconfig,
             IDatabase idatabase,
-            IOptions<AppSettings> appSettings, 
-            IOptions<AuthSettings> authSettings, 
+            IOptions<AppSettings> appSettings,
+            IOptions<AuthSettings> authSettings,
             IOptions<MySQLSettings> mySQLSettings
             )
         {
@@ -107,14 +107,14 @@ namespace scabackend.Controllers
         {
             UserModel userModel = this._redisClass.GetUserModelSingle();
 
-            if (userModel.status == 500)
-            {
-                return Results.BadRequest(new
-                {
-                    status = 500,
-                    message = "Error"
-                });
-            }
+            // if (userModel.status == 500)
+            // {
+            //     return Results.BadRequest(new
+            //     {
+            //         status = 500,
+            //         message = userModel.message
+            //     });
+            // }
 
             if (userModel.status != 200)
             {
@@ -146,10 +146,11 @@ namespace scabackend.Controllers
         [HttpPost]
         public IResult Login([FromBody] UserLoginModel user)
         {
-            if (string.IsNullOrEmpty(user.account) || string.IsNullOrEmpty(user.password)) {
+            if (string.IsNullOrEmpty(user.account) || string.IsNullOrEmpty(user.password))
+            {
                 return Results.NotFound("User not found");
             }
-            
+
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(this._authSettings.secret_key);
             var tokenDescriptor = new SecurityTokenDescriptor
@@ -158,8 +159,8 @@ namespace scabackend.Controllers
                 {
                     new Claim(ClaimTypes.Name, user.account)
                 }),
-                Issuer= this._authSettings.issuer,
-                Audience= this._authSettings.audience,
+                Issuer = this._authSettings.issuer,
+                Audience = this._authSettings.audience,
                 Expires = DateTime.UtcNow.AddHours(this._authSettings.expiration),
                 NotBefore = DateTime.UtcNow,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
