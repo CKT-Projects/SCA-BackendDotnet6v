@@ -7,7 +7,7 @@ namespace scabackend.Classes
     public class RedisClass
     {
         public static IDatabase idatabase { get; set; }
-       
+
         public bool SetUserModelSingle(UserModel userModel, string datakey = "allnewusers")
         {
             bool result = false;
@@ -18,13 +18,13 @@ namespace scabackend.Classes
 
                 result = idatabase.StringSet(datakey, datavalue);
             }
-            catch 
-            {}
+            catch
+            { }
 
             return result;
         }
 
-        public bool SetUserSingle(UserDataModel userDataModel)
+        public async Task<bool> SetUserSingle(UserDataModel userDataModel)
         {
             string datakey = userDataModel.username + "_" + Guid.NewGuid().ToString();
 
@@ -34,7 +34,9 @@ namespace scabackend.Classes
             {
                 string datavalue = JsonConvert.SerializeObject(userDataModel);
 
-                result = idatabase.StringSet(datakey, datavalue);
+                TimeSpan setTTL = TimeSpan.FromSeconds(10);
+
+                result = await idatabase.StringSetAsync(datakey, datavalue, setTTL);
             }
             catch
             { }
@@ -42,13 +44,13 @@ namespace scabackend.Classes
             return result;
         }
 
-        public UserModel GetUserModelSingle(string datakey = "allnewusers")
+        public async Task<UserModel> GetUserModelSingle(string datakey = "allnewusers")
         {
             UserModel userModel = new UserModel();
 
             try
             {
-                var data = idatabase.StringGet(datakey);
+                var data = await idatabase.StringGetAsync(datakey);
 
                 userModel = JsonConvert.DeserializeObject<UserModel>(data);
             }
@@ -58,23 +60,25 @@ namespace scabackend.Classes
             return userModel;
         }
 
-        public UserDataModel GetUserDataModelSingle(string datakey)
+        public async Task<UserDataModel> GetUserDataModelSingle(string datakey)
         {
             UserDataModel userDataModel = new UserDataModel();
 
             try
             {
-                var data = idatabase.StringGet(datakey);
+                // var data = idatabase.StringGet(datakey);
+
+                var data = await idatabase.StringGetAsync(datakey);
 
                 userDataModel = JsonConvert.DeserializeObject<UserDataModel>(data);
             }
             catch
-            {}
+            { }
 
             return userDataModel;
         }
 
-        public UserModel CheckUserDuplicate(string username)
+        public async Task<UserModel> CheckUserDuplicate(string username)
         {
             UserModel userModel = new UserModel();
 
@@ -88,7 +92,7 @@ namespace scabackend.Classes
 
                 foreach (var key in server.Keys(pattern: "*" + username + "*"))
                 {
-                    UserDataModel userDataModel = this.GetUserDataModelSingle(key);
+                    UserDataModel userDataModel = await this.GetUserDataModelSingle(key);
                     userDataModel.key = key;
                     userModel.data.Add(userDataModel);
                 }

@@ -14,13 +14,9 @@ WORKDIR /src
 COPY ["scabackend.csproj", "./"]
 RUN dotnet restore "scabackend.csproj"
 COPY . .
-WORKDIR "/src/."
-RUN dotnet build "scabackend.csproj" -c Release -o /app/build
-
-FROM build AS publish
 RUN dotnet publish "scabackend.csproj" -c Release -o /app/publish
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "scabackend.dll"]
