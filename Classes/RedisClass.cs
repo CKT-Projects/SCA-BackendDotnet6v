@@ -7,8 +7,15 @@ namespace scabackend.Classes
     public class RedisClass
     {
         public static IDatabase idatabase { get; set; }
+        public static double ittl { get; set; }
+        private static TimeSpan _ttl { get; set; }
 
-        public bool SetUserModelSingle(UserModel userModel, string datakey = "allnewusers")
+        public RedisClass()
+        {
+            _ttl = TimeSpan.FromSeconds(ittl);
+        }
+
+        public async Task<bool> SetUserModelSingle(UserModel userModel, string datakey = "allnewusers")
         {
             bool result = false;
 
@@ -16,7 +23,7 @@ namespace scabackend.Classes
             {
                 string datavalue = JsonConvert.SerializeObject(userModel);
 
-                result = idatabase.StringSet(datakey, datavalue);
+                result = await idatabase.StringSetAsync(datakey, datavalue, _ttl);
             }
             catch
             { }
@@ -34,9 +41,7 @@ namespace scabackend.Classes
             {
                 string datavalue = JsonConvert.SerializeObject(userDataModel);
 
-                TimeSpan setTTL = TimeSpan.FromSeconds(10);
-
-                result = await idatabase.StringSetAsync(datakey, datavalue, setTTL);
+                result = await idatabase.StringSetAsync(datakey, datavalue, _ttl);
             }
             catch
             { }

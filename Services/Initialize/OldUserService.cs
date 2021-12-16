@@ -19,7 +19,7 @@ namespace scabackend.Services.Initialize
             _redisClass = new RedisClass();
         }
 
-        public void Start(UserService userService)
+        public async Task Start(UserService userService)
         {
             UserModel userOldData = this.GetUserList("SELECT " +
                                                                 "user_name AS username, " +
@@ -38,19 +38,19 @@ namespace scabackend.Services.Initialize
 
             foreach (UserDataModel userData in userOldData.data)
             {
-                UserModel result = _redisClass.CheckUserDuplicate(userData.username.Trim());
+                UserModel userModel = await _redisClass.CheckUserDuplicate(userData.username.Trim());
 
-                if (result.status == 200)
+                if (userModel.status == 200)
                 {
                     int indexCount = 0;
 
                     UserModuleAccess userModuleAccess = new UserModuleAccess();
 
-                    userModuleAccess.modules = new int[result.data.Count + 1];
+                    userModuleAccess.modules = new int[userModel.data.Count + 1];
 
                     userModuleAccess.modules = access_module(userModuleAccess.modules, userData.role, indexCount);
 
-                    foreach (UserDataModel userDataModel in result.data)
+                    foreach (UserDataModel userDataModel in userModel.data)
                     {
                         indexCount++;
                         userModuleAccess.modules = access_module(userModuleAccess.modules, userDataModel.role, indexCount);
@@ -70,7 +70,7 @@ namespace scabackend.Services.Initialize
                 }
                 else
                 {
-                    if (result.status != 500)
+                    if (userModel.status != 500)
                     {
                         UserModuleAccess userModuleAccess = new UserModuleAccess();
 
@@ -84,7 +84,7 @@ namespace scabackend.Services.Initialize
                     }
                 }
 
-                _redisClass.SetUserSingle(userData);
+                bool result = await _redisClass.SetUserSingle(userData);
             }
         }
 

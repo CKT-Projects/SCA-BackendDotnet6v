@@ -46,6 +46,7 @@ namespace scabackend.Controllers
             this._userService = new UserService(this._myNewDatabase.DBConnect);
 
             RedisClass.idatabase = idatabase;
+            RedisClass.ittl = 60;
             this._redisClass = new RedisClass();
         }
 
@@ -60,38 +61,53 @@ namespace scabackend.Controllers
         [Route("get/all/old")]
         [HttpGet]
         //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public IResult GetOld()
+        public async Task<IResult> GetOld()
         {
-            UserModel userOldData = this._redisClass.GetUserModelSingle("alloldusers");
+            //UserModel userOldData = await this._redisClass.GetUserModelSingle("alloldusers");
 
-            if (userOldData.status == 500)
-            {
-                return Results.BadRequest(new
-                {
-                    status = 500,
-                    message = "Error"
-                });
-            }
+            //if (userOldData.status == 500)
+            //{
+            //    return Results.BadRequest(new
+            //    {
+            //        status = 500,
+            //        message = "Error"
+            //    });
+            //}
 
-            if (userOldData.status != 200)
-            {
-                userOldData = this._userOldService.GetOldUserList("SELECT " +
-                                                                "user_name AS username, " +
-                                                                "email, " +
-                                                                "mobilenumber AS mobile, " +
-                                                                "hint, " +
-                                                                "last_name AS lastname, " +
-                                                                "first_name AS firstname, " +
-                                                                "middle_name AS middlename, " +
-                                                                "role, " +
-                                                                "worker_of, " +
-                                                                "active AS is_active, " +
-                                                                "created_at, " +
-                                                                "updated_at " +
-                                                                "FROM tbl_users WHERE active = 1 ORDER BY username ASC;");
+            //if (userOldData.status != 200)
+            //{
+            //    userOldData = this._userOldService.GetOldUserList("SELECT " +
+            //                                                    "user_name AS username, " +
+            //                                                    "email, " +
+            //                                                    "mobilenumber AS mobile, " +
+            //                                                    "hint, " +
+            //                                                    "last_name AS lastname, " +
+            //                                                    "first_name AS firstname, " +
+            //                                                    "middle_name AS middlename, " +
+            //                                                    "role, " +
+            //                                                    "worker_of, " +
+            //                                                    "active AS is_active, " +
+            //                                                    "created_at, " +
+            //                                                    "updated_at " +
+            //                                                    "FROM tbl_users WHERE active = 1 ORDER BY username ASC;");
 
-                this._redisClass.SetUserModelSingle(userOldData, "alloldusers");
-            }
+            //    bool result = await this._redisClass.SetUserModelSingle(userOldData, "alloldusers");
+            //}
+
+            UserModel userOldData = this._userOldService.GetOldUserList("SELECT " +
+                                                               "user_name AS username, " +
+                                                               "email, " +
+                                                               "mobilenumber AS mobile, " +
+                                                               "hint, " +
+                                                               "last_name AS lastname, " +
+                                                               "first_name AS firstname, " +
+                                                               "middle_name AS middlename, " +
+                                                               "role, " +
+                                                               "worker_of, " +
+                                                               "active AS is_active, " +
+                                                               "created_at, " +
+                                                               "updated_at " +
+                                                               "FROM tbl_users WHERE active = 1 ORDER BY username ASC;");
 
             return Results.Ok(new
             {
@@ -103,18 +119,9 @@ namespace scabackend.Controllers
 
         [HttpGet]
         //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public IResult Get()
+        public async Task<IResult> Get()
         {
-            UserModel userModel = this._redisClass.GetUserModelSingle();
-
-            // if (userModel.status == 500)
-            // {
-            //     return Results.BadRequest(new
-            //     {
-            //         status = 500,
-            //         message = userModel.message
-            //     });
-            // }
+            UserModel userModel = await this._redisClass.GetUserModelSingle();
 
             if (userModel.status != 200)
             {
