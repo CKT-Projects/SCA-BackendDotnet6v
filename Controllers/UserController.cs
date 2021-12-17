@@ -48,6 +48,18 @@ namespace scabackend.Controllers
             RedisClass.idatabase = idatabase;
             RedisClass.ittl = 60;
             this._redisClass = new RedisClass();
+            this._redisClass.redisEventHandler += _redisClass_redisEventHandler;
+        }
+
+        private void _redisClass_redisEventHandler(object sender, EventArgs.RedisEventArgs e)
+        {
+            if(e.Reload)
+            {
+                for (int i = 0; i < 100; i++)
+                {
+                    System.Diagnostics.Debug.WriteLine(i.ToString());  
+                }
+            }
         }
 
         [Route("initialize")]
@@ -55,7 +67,13 @@ namespace scabackend.Controllers
         public void Initialize()
         {
             // user old service, then pass user new service
-            this._userOldService.StartInitOldUser(this._userService);
+            //this._userOldService.StartInitOldUser(this._userService);
+
+            for(int i = 0; i < 10; i++)
+            {
+                this._redisClass.runsampleEventArgs();
+            }
+
         }
 
         [Route("get/all/old")]

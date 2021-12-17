@@ -2,10 +2,17 @@
 using scabackend.Settings;
 using scabackend.Models;
 using Newtonsoft.Json;
+using scabackend.EventArgs;
+
 namespace scabackend.Classes
 {
     public class RedisClass
     {
+
+        public delegate void RedisEventHandler(object sender, RedisEventArgs e);
+
+        public event RedisEventHandler redisEventHandler;
+
         public static IDatabase idatabase { get; set; }
         public static double ittl { get; set; }
         private static TimeSpan _ttl { get; set; }
@@ -13,6 +20,11 @@ namespace scabackend.Classes
         public RedisClass()
         {
             _ttl = TimeSpan.FromSeconds(ittl);
+        }
+
+        public void runsampleEventArgs()
+        {
+            redisEventHandler(this, new RedisEventArgs() { Reload = true });
         }
 
         public async Task<bool> SetUserModelSingle(UserModel userModel, string datakey = "allnewusers")
